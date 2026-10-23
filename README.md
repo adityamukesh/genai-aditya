@@ -1,8 +1,8 @@
 <div align="center">
 
-# ⚙️ Gas Turbine Maintenance Assistant
+<img src="screenshots/banner.png" alt="Gas Turbine Maintenance Assistant: RAG over GE GER-3620P" width="100%">
 
-### Ask GE's 60-page gas turbine maintenance manual anything.<br>Get a grounded answer with the exact section and page, or an honest **"Not found"**.
+<br><br>
 
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
 ![LangChain](https://img.shields.io/badge/LangChain-RAG-1C3C3C?logo=langchain&logoColor=white)
@@ -11,9 +11,11 @@
 ![Streamlit](https://img.shields.io/badge/Streamlit-web%20UI-FF4B4B?logo=streamlit&logoColor=white)
 ![Eval](https://img.shields.io/badge/evaluation-11%2F11%20passed-2EA44F)
 
-<img src="screenshots/webui-q1.png" alt="Gas Turbine Maintenance Assistant web UI" width="92%">
+### Ask GE's 60-page gas turbine maintenance manual anything.<br>Get a grounded answer with the exact section and page, or an honest **"Not found"**.
 
-<sub><b>Project 3</b> · RAG over GE GER-3620P, <i>Heavy-Duty Gas Turbine Operating and Maintenance Considerations</i> (Rev P, 60 pages)</sub>
+<img src="screenshots/demo.gif" alt="Demo: a question answered with its source, then a question that is not in the PDF gets Not found" width="94%">
+
+<sub><b>Project 3</b> · RAG over GE GER-3620P, <i>Heavy-Duty Gas Turbine Operating and Maintenance Considerations</i> (Rev P, 60 pages) · live demo of the web UI</sub>
 
 </div>
 
@@ -37,13 +39,13 @@
 
 ## Answers to the 5 questions
 
-| # | Question | Answer (from the system) | Where in the document |
-|---|---|---|---|
-| 1 | What are the three main types of inspection? | **Standby, running, and disassembly inspections.** | *Maintenance Inspections*, p. 21 (PDF p. 25) |
-| 2 | What does a maintenance factor of two mean? | **The maintenance interval is one-half of the baseline interval**, i.e. maintenance is needed twice as often as under baseline conditions. | *Major Factors Influencing Maintenance and Equipment Life*, p. 4-5 (PDF p. 8-9) |
-| 3 | What is the purchase price of this gas turbine? | **Not found** | — (the document has no pricing) |
-| 4 | What is the melting point of titanium? | **Not found** | — (not covered by the document) |
-| 5 | What is the recommended combustion-inspection interval in hours? | **It depends on the model and combustion system: 8,000 to 32,000 factored hours** (baseline: base load, natural gas, dry). 8,000 h: 7E.03, 9E.03, 6F.03 (non-DLN) · 12,000 h: 6B.03, 7E.03 and 9E.03 (DLN), 9F.05 · 24,000 h: 6F.03 (DLN), 7F.03, 7F.05, 9F.03 · 25,000 h: 7HA.01/.02, 9HA.01/.02 · 32,000 h: 9E.04, 6F.01, 7F.04, 7FB.04, 9F.04 | *Inspection Intervals*, **Figure 36**, p. 29 (PDF p. 33) |
+| # | Question | Status | Answer (from the system) | Where in the document |
+|---|---|:---:|---|---|
+| 1 | What are the three main types of inspection? | ✅ | **Standby, running, and disassembly inspections.** | *Maintenance Inspections*, p. 21 (PDF p. 25) |
+| 2 | What does a maintenance factor of two mean? | ✅ | **The maintenance interval is one-half of the baseline interval**, i.e. maintenance is needed twice as often as under baseline conditions. | *Major Factors Influencing Maintenance and Equipment Life*, p. 4-5 (PDF p. 8-9) |
+| 3 | What is the purchase price of this gas turbine? | 🚫 | **Not found** | — (the document has no pricing) |
+| 4 | What is the melting point of titanium? | 🚫 | **Not found** | — (not covered by the document) |
+| 5 | What is the recommended combustion-inspection interval in hours? | ✅ | **It depends on the model and combustion system: 8,000 to 32,000 factored hours** (baseline: base load, natural gas, dry). 8,000 h: 7E.03, 9E.03, 6F.03 (non-DLN) · 12,000 h: 6B.03, 7E.03 and 9E.03 (DLN), 9F.05 · 24,000 h: 6F.03 (DLN), 7F.03, 7F.05, 9F.03 · 25,000 h: 7HA.01/.02, 9HA.01/.02 · 32,000 h: 9E.04, 6F.01, 7F.04, 7FB.04, 9F.04 | *Inspection Intervals*, **Figure 36**, p. 29 (PDF p. 33) |
 
 > **Page numbers:** "p." is the number printed on the page; "PDF p." is the page number shown by a PDF viewer.
 > Raw system output for all five questions: [`answers.md`](answers.md).
@@ -159,6 +161,11 @@ streamlit run app.py        # opens http://localhost:8501
 
 ## Flow
 
+<img src="screenshots/architecture.png" alt="Architecture: ingestion and question-answering pipeline" width="100%">
+
+<details>
+<summary>Same flow as Mermaid diagrams</summary>
+
 **1. Ingestion** (`python ingest.py`, run once)
 
 ```mermaid
@@ -184,6 +191,8 @@ flowchart TD
     H -- no --> NF2["Not found"]
     H -- yes --> O["Answer + section<br/>and page reference"]
 ```
+
+</details>
 
 ### Step by step
 
