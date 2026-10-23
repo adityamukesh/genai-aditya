@@ -64,31 +64,30 @@ answer, the reference and the model that produced it.
 
 ## Flow
 
+**1. Ingestion** (`python ingest.py`, run once)
+
+```mermaid
+flowchart LR
+    A["GER-3620-P.pdf<br/>60 pages"] --> B["PyMuPDF parser<br/>sections + tables"]
+    B --> C["236 chunks<br/>section + page metadata"]
+    C --> D["bge-small<br/>embeddings"]
+    D --> E[("ChromaDB")]
+```
+
+**2. Question answering** (`python ask.py`)
+
 ```mermaid
 flowchart TD
-    subgraph ING["1 · Ingestion (python ingest.py, run once)"]
-        A["GER-3620-P.pdf (60 pages)"] --> B["PyMuPDF parser<br/>headings recovered from font size and colour<br/>tables detected and read cell by cell"]
-        B --> C["Section-aware chunks (236)<br/>text: 1,000 chars, 150 overlap<br/>tables: one chunk per sub-table<br/>metadata: section, figure, printed page, PDF page"]
-        C --> D["Embeddings: BAAI/bge-small-en-v1.5 (FastEmbed, local)"]
-        D --> E[("ChromaDB<br/>persistent, cosine")]
-    end
-
-    subgraph QRY["2 · Question answering (python ask.py)"]
-        Q["User question"] --> V["Vector search<br/>top 15"]
-        Q --> K["BM25 keyword search<br/>top 15"]
-        V --> U["Union of candidates"]
-        K --> U
-        U --> R["Cross-encoder rerank<br/>ms-marco-MiniLM-L-6-v2"]
-        R --> G{"Best score >= -8 ?"}
-        G -- "no" --> NF1["Not found"]
-        G -- "yes" --> L["Groq LLM (gpt-oss-120b, temperature 0)<br/>answers ONLY from the top 8 excerpts<br/>and cites them as [1], [2] ..."]
-        L --> H{"Answer in the excerpts?"}
-        H -- "no" --> NF2["Not found"]
-        H -- "yes" --> O["Answer + references<br/>section > subsection, figure, page"]
-    end
-
-    E -.->|similarity search| V
-    E -.->|all chunks| K
+    Q["Question"] --> V["Vector search<br/>top 15"]
+    Q --> K["BM25 keyword search<br/>top 15"]
+    V --> R["Cross-encoder rerank"]
+    K --> R
+    R --> G{"Best score >= -8?"}
+    G -- no --> NF1["Not found"]
+    G -- yes --> L["Groq gpt-oss-120b<br/>answers only from<br/>the top 8 excerpts"]
+    L --> H{"Answer in<br/>the excerpts?"}
+    H -- no --> NF2["Not found"]
+    H -- yes --> O["Answer + section<br/>and page reference"]
 ```
 
 ### Step by step
