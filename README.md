@@ -161,38 +161,53 @@ streamlit run app.py        # opens http://localhost:8501
 
 ## Flow
 
-<img src="screenshots/architecture.png" alt="Architecture: ingestion and question-answering pipeline" width="100%">
+### Flowchart
 
-<details>
-<summary>Same flow as Mermaid diagrams</summary>
-
-**1. Ingestion** (`python ingest.py`, run once)
+**① Ingestion**: run once with `python ingest.py`
 
 ```mermaid
 flowchart LR
-    A["GER-3620-P.pdf<br/>60 pages"] --> B["PyMuPDF parser<br/>sections + tables"]
-    B --> C["236 chunks<br/>section + page metadata"]
-    C --> D["bge-small<br/>embeddings"]
-    D --> E[("ChromaDB")]
+    A["📄 GER-3620-P.pdf<br/>60 pages"] --> B["🧭 PyMuPDF parser<br/>sections + tables"]
+    B --> C["🧩 236 chunks<br/>section + page metadata"]
+    C --> D["🔢 bge-small<br/>embeddings"]
+    D --> E[("🗄️ ChromaDB")]
+
+    classDef step fill:#e6f4f3,stroke:#0b7a75,stroke-width:2px,color:#0f172a
+    classDef store fill:#fff4dc,stroke:#d97706,stroke-width:2px,color:#0f172a
+    class A,B,C,D step
+    class E store
 ```
 
-**2. Question answering** (`python ask.py`)
+**② Question answering**: every question, in `python ask.py` or the web UI
 
 ```mermaid
 flowchart TD
-    Q["Question"] --> V["Vector search<br/>top 15"]
-    Q --> K["BM25 keyword search<br/>top 15"]
-    V --> R["Cross-encoder rerank"]
+    Q(["💬 Question<br/>typed or 🎙️ spoken"]) --> V["🧠 Vector search<br/>top 15"]
+    Q --> K["🔤 BM25 keyword search<br/>top 15"]
+    V --> R["🏆 Cross-encoder rerank"]
     K --> R
-    R --> G{"Best score >= -8?"}
-    G -- no --> NF1["Not found"]
-    G -- yes --> L["Groq gpt-oss-120b<br/>answers only from<br/>the top 8 excerpts"]
+    R --> G{"🚦 Best score<br/>≥ -8 ?"}
+    G -- "no" --> NF1(["🚫 Not found"])
+    G -- "yes" --> L["⚡ Groq gpt-oss-120b<br/>answers only from<br/>the top 8 excerpts"]
     L --> H{"Answer in<br/>the excerpts?"}
-    H -- no --> NF2["Not found"]
-    H -- yes --> O["Answer + section<br/>and page reference"]
+    H -- "no" --> NF2(["🚫 Not found"])
+    H -- "yes" --> O(["✅ Answer + section<br/>and page reference"])
+
+    classDef step fill:#e6f4f3,stroke:#0b7a75,stroke-width:2px,color:#0f172a
+    classDef llm fill:#ede9fe,stroke:#7c3aed,stroke-width:2px,color:#0f172a
+    classDef gate fill:#fff4dc,stroke:#d97706,stroke-width:2px,color:#0f172a
+    classDef bad fill:#fee2e2,stroke:#dc2626,stroke-width:2px,color:#991b1b
+    classDef good fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#14532d
+    class Q,V,K,R step
+    class L llm
+    class G,H gate
+    class NF1,NF2 bad
+    class O good
 ```
 
-</details>
+### Architecture at a glance
+
+<img src="screenshots/architecture.png" alt="Architecture: ingestion and question-answering pipeline" width="100%">
 
 ### Step by step
 
