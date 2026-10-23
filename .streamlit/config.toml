@@ -1,0 +1,12 @@
+[server]
+showEmailPrompt = false
+
+[client]
+toolbarMode = "minimal"
+
+[browser]
+gatherUsageStats = false
+
+[theme]
+primaryColor = "#0b7a75"
+baseRadius = "0.75rem"

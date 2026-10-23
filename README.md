@@ -6,7 +6,7 @@ Ask an operating or maintenance question about GE heavy-duty gas turbines and ge
 document, with the **section and page where the answer is**. If the document does not contain the answer, the
 assistant replies **`Not found`**.
 
-**Stack:** Python 3.12 · LangChain · ChromaDB · FastEmbed (local ONNX embeddings + cross-encoder reranker) · BM25 · PyMuPDF · Groq (`openai/gpt-oss-120b`)
+**Stack:** Python 3.12 · LangChain · ChromaDB · FastEmbed (local ONNX embeddings + cross-encoder reranker) · BM25 · PyMuPDF · Groq (`openai/gpt-oss-120b`) · Streamlit web UI
 
 ---
 
@@ -88,6 +88,34 @@ numbers.
 **and** the cited page. For one that is not in the PDF it checks for an exact `Not found`.
 
 ![Evaluation: 11/11 passed](screenshots/demo-eval.png)
+
+---
+
+## Web UI (runs on localhost)
+
+A chat-style web app built with **Streamlit** on top of the same RAG pipeline.
+
+```bash
+streamlit run app.py        # opens http://localhost:8501
+```
+
+Features:
+- Ask any question, or click one of the 5 assignment questions.
+- Answers have numbered citations and a **Sources** list with section, figure and page.
+- Questions the PDF doesn't answer get a red **Not found** card instead of a guess.
+- **How this answer was found** shows the relevance-gate decision and every retrieved excerpt with its rerank score.
+
+**Home screen**
+
+![Web UI: home](screenshots/webui-home.png)
+
+**Answer with source (Q5, from Figure 36)**
+
+![Web UI: answer with source](screenshots/webui-answer.png)
+
+**Not found, with the retrieval details expanded (Q4)**
+
+![Web UI: Not found](screenshots/webui-not-found.png)
 
 ---
 
@@ -179,6 +207,8 @@ answer contains the expected facts **and** cites the correct page. For an unansw
 ├── ingest.py          # builds the ChromaDB index (chroma_db/)
 ├── rag.py             # hybrid retrieval, rerank, relevance gate, Groq LLM, citations
 ├── ask.py             # CLI: one question, interactive mode, or batch + screenshots
+├── app.py             # Streamlit web UI (streamlit run app.py)
+├── .streamlit/        # web UI theme and settings
 ├── eval.py            # regression check (answerable + unanswerable questions)
 ├── questions.txt      # the 5 assignment questions
 ├── answers.md         # generated answers to the 5 questions
@@ -207,6 +237,7 @@ cp .env.example .env          # then put your GROQ_API_KEY in .env
 
 python ingest.py              # parse, chunk, embed -> chroma_db/  (about 2 minutes, once)
 python ask.py "What are the three main types of inspection?"
+streamlit run app.py          # web UI at http://localhost:8501
 ```
 
 Other ways to run it:

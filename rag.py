@@ -130,7 +130,7 @@ def cite(doc: Document) -> str:
     return f"{where}, p. {printed} (PDF p. {viewer})"
 
 
-def _body(doc: Document) -> str:
+def excerpt_text(doc: Document) -> str:
     return doc.page_content.split("\n", 1)[1]  # drop the "[section]" line added for embedding
 
 
@@ -145,7 +145,7 @@ def retrieve(question: str) -> list[tuple[Document, float]]:
 
 def _generate(question: str, ranked: list[tuple[Document, float]]) -> tuple[str, list[Document]]:
     docs = [d for d, _ in ranked]
-    context = "\n\n".join(f"[{i}] ({cite(d)})\n{_body(d)}" for i, d in enumerate(docs, 1))
+    context = "\n\n".join(f"[{i}] ({cite(d)})\n{excerpt_text(d)}" for i, d in enumerate(docs, 1))
     prompt = ChatPromptTemplate.from_messages([("system", SYSTEM_PROMPT), ("human", USER_PROMPT)])
     chain = prompt | get_llm() | StrOutputParser()
     text = chain.invoke({"context": context, "question": question}).strip()
@@ -191,7 +191,7 @@ def _tidy_citations(text: str) -> str:
 def _extract(question: str, ranked: list[tuple[Document, float]]) -> tuple[str, list[Document]]:
     """No LLM available: return the best-matching sentences of the top excerpt."""
     best = ranked[0][0]
-    sentences = [s for s in re.split(r"(?<=[.!?])\s+|\n", _body(best)) if len(s.split()) > 3]
+    sentences = [s for s in re.split(r"(?<=[.!?])\s+|\n", excerpt_text(best)) if len(s.split()) > 3]
     scores = list(get_reranker().rerank(question, sentences))
     top = sorted(sorted(range(len(sentences)), key=lambda i: scores[i], reverse=True)[:2])
     return " ".join(sentences[i] for i in top) + " [1]", [best]

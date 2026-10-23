@@ -4,9 +4,9 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-load_dotenv()
-
 ROOT = Path(__file__).resolve().parent
+load_dotenv(ROOT / ".env")
+
 PDF_PATH = ROOT / "data" / "GER-3620-P.pdf"
 CHROMA_DIR = ROOT / "chroma_db"
 COLLECTION = "ger3620p"
