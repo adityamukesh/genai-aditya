@@ -1,14 +1,37 @@
-# Gas Turbine Maintenance Assistant
+<div align="center">
 
-**Project 3 — RAG over GE GER-3620P, *Heavy-Duty Gas Turbine Operating and Maintenance Considerations* (Rev P, 60 pages).**
+# ⚙️ Gas Turbine Maintenance Assistant
 
-Ask an operating or maintenance question about GE heavy-duty gas turbines and get an answer drawn only from the
-document, with the **section and page where the answer is**. If the document does not contain the answer, the
-assistant replies **`Not found`**.
+### Ask GE's 60-page gas turbine maintenance manual anything.<br>Get a grounded answer with the exact section and page, or an honest **"Not found"**.
 
-**Stack:** Python 3.12 · LangChain · ChromaDB · FastEmbed (local ONNX embeddings + cross-encoder reranker) · BM25 · PyMuPDF · Groq (`openai/gpt-oss-120b`) · Streamlit web UI
+![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
+![LangChain](https://img.shields.io/badge/LangChain-RAG-1C3C3C?logo=langchain&logoColor=white)
+![ChromaDB](https://img.shields.io/badge/ChromaDB-vector%20store-FF6F00)
+![Groq](https://img.shields.io/badge/Groq-gpt--oss--120b-F55036)
+![Streamlit](https://img.shields.io/badge/Streamlit-web%20UI-FF4B4B?logo=streamlit&logoColor=white)
+![Eval](https://img.shields.io/badge/evaluation-11%2F11%20passed-2EA44F)
 
-**Contents:** [Answers](#answers-to-the-5-questions) · [Screenshots](#screenshots-question-asked-and-answer) · [Terminal demo](#live-demo-in-the-terminal) · [Web UI](#web-ui-runs-on-localhost) · [Flow](#flow) · [Evaluation](#evaluation) · [Setup](#setup-and-run)
+<img src="screenshots/webui-q1.png" alt="Gas Turbine Maintenance Assistant web UI" width="92%">
+
+<sub><b>Project 3</b> · RAG over GE GER-3620P, <i>Heavy-Duty Gas Turbine Operating and Maintenance Considerations</i> (Rev P, 60 pages)</sub>
+
+</div>
+
+## ✨ Highlights
+
+| | |
+|---|---|
+| 📑 **Grounded answers** | Every answer comes only from the PDF and cites its **section, figure and page**. |
+| 🚫 **Honest "Not found"** | A relevance gate and a strictly grounded LLM refuse to guess (Q3 and Q4). |
+| 📊 **Reads tables, not just text** | The Figure 36 inspection-interval table is parsed cell by cell, so Q5 lists the right value for every turbine model. |
+| 🔎 **Hybrid retrieval** | Vector search (ChromaDB) + BM25 keywords, then a cross-encoder reranker. |
+| 🔗 **Citations can't be invented** | Page references come from stored chunk metadata, not from the LLM's text. |
+| 💬 **Two interfaces** | A terminal CLI and a Streamlit web UI on `localhost:8501`. |
+| ✅ **Tested** | `eval.py` checks 11 questions, answerable and not, for correct facts and pages: **11/11 pass**. |
+
+**Stack:** Python 3.12 · LangChain · ChromaDB · FastEmbed (local ONNX embeddings + cross-encoder reranker) · BM25 · PyMuPDF · Groq (`openai/gpt-oss-120b`) · Streamlit
+
+**📚 Contents:** [Answers](#answers-to-the-5-questions) · [Screenshots](#screenshots-question-asked-and-answer) · [Terminal demo](#live-demo-in-the-terminal) · [Web UI](#web-ui-runs-on-localhost) · [Flow](#flow) · [Evaluation](#evaluation) · [Setup](#setup-and-run)
 
 ---
 
