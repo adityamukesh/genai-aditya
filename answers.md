@@ -1,0 +1,7 @@
+| # | Question | Answer | Reference |
+|---|---|---|---|
+| 1 | What are the three main types of inspection? | The three main maintenance-inspection types are standby inspection, running inspection, and disassembly inspection. [1] | [1] Maintenance Inspections, p. 21 (PDF p. 25) |
+| 2 | What does a maintenance factor of two mean? | A maintenance factor of two indicates that the required maintenance interval is one-half of the baseline interval (i.e., maintenance must be performed twice as often as under baseline conditions) [1]. | [1] Major Factors Influencing Maintenance and Equipment Life, p. 4-5 (PDF p. 8-9) |
+| 3 | What is the purchase price of this gas turbine? | Not found | - |
+| 4 | What is the melting point of titanium? | Not found | - |
+| 5 | What is the recommended combustion-inspection interval in hours? | The recommended combustion-inspection interval varies by turbine model and DLN status, ranging from 8,000 hours to 32,000 hours. - 6F.03 (Non-DLN): 8,000 h - 6F.01 (DLN): 32,000 h - 6F.03 (DLN): 24,000 h - 7F.03 (DLN): 24,000 h - 6B.03 (Non-DLN): 12,000 h - 7E.03 (Non-DLN): 8,000 h - 9E.03 (Non-DLN): 8,000 h - 9E.04 (Non-DLN): 32,000 h - 6B.03 (DLN): 12,000 h - 7E.03 (DLN): 12,000 h - 9E.03 (DLN): 12,000 h - 9E.04 (DLN): 32,000 h - 7F.04 (DLN): 32,000 h - 7FB.04 (DLN): 32,000 h - 7F.05 (DLN): 24,000 h - 9F.03 (DLN): 24,000 h - 9F.04 (DLN): 32,000 h - 9F.05 (DLN): 12,000 h - 7HA.01 (DLN): 25,000 h - 7HA.02 (DLN): 25,000 h - 9HA.01 (DLN): 25,000 h - 9HA.02 (DLN): 25,000 h [1] | [1] Inspection Intervals (Figure 36), p. 29 (PDF p. 33) |
