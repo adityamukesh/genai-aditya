@@ -62,6 +62,35 @@ answer, the reference and the model that produced it.
 
 ---
 
+## Live demo in the terminal
+
+These are recordings of real terminal sessions of the assistant running. They show more than the 5 required
+questions: a multi-question conversation, what the retriever found, and the automated test run.
+
+### 1. Interactive session
+
+Running `python ask.py` with no arguments starts a chat-style session. Here three questions are asked in a row; the
+last one is not in the document, so the assistant answers `Not found` instead of guessing.
+
+![Interactive session](screenshots/demo-interactive.png)
+
+### 2. Under the hood: what the retriever found
+
+`--show-context` also prints the excerpts that were sent to the LLM, ranked by the cross-encoder score. The answer
+comes from the Figure 36 table chunks. Hybrid search (vectors + BM25) found them even though the table is mostly
+numbers.
+
+![Retrieval with --show-context](screenshots/demo-show-context.png)
+
+### 3. Evaluation run
+
+`python eval.py` asks 11 questions: 6 answerable and 5 not in the PDF. For an answerable question it checks the facts
+**and** the cited page. For one that is not in the PDF it checks for an exact `Not found`.
+
+![Evaluation: 11/11 passed](screenshots/demo-eval.png)
+
+---
+
 ## Flow
 
 **1. Ingestion** (`python ingest.py`, run once)
@@ -154,7 +183,7 @@ answer contains the expected facts **and** cites the correct page. For an unansw
 ├── questions.txt      # the 5 assignment questions
 ├── answers.md         # generated answers to the 5 questions
 ├── eval_results.md    # generated evaluation table
-├── screenshots/       # q1-q5 (.png, plus the .svg terminal captures)
+├── screenshots/       # q1-q5 answers + demo-* terminal sessions (.png, plus .svg captures)
 ├── data/              # put GER-3620-P.pdf here (not committed, see Setup)
 ├── requirements.txt
 └── .env.example       # GROQ_API_KEY=...
