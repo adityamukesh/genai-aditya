@@ -32,6 +32,7 @@ from config import (
     NOT_FOUND,
     RERANK_MODEL,
     TOP_K,
+    WHISPER_MODEL,
 )
 
 SYSTEM_PROMPT = """You are a maintenance assistant for GE heavy-duty gas turbines.
@@ -209,3 +210,48 @@ def answer(question: str) -> Answer:
     found = text != NOT_FOUND
     note = "" if found else f"The LLM found no answer in the top {len(ranked)} excerpts."
     return Answer(question, text, found, refs, ranked, mode, note)
+
+
+# Domain words help Whisper spell model numbers and jargon ("7F.03", "DLN") correctly.
+WHISPER_HINT = (
+    "Gas turbine maintenance, GER-3620P: combustion inspection, hot gas path, major inspection, DLN, "
+    "maintenance factor, factored hours, 6B.03, 7E.03, 9E.03, 7F.03, 9F.03, 7HA, borescope."
+)
+
+
+def is_silent(audio: bytes, threshold: int = 60) -> bool:
+    """True when a 16-bit PCM WAV recording carries no speech. Whisper invents text
+    ("Thank you.") for silent clips, so those are rejected before transcription.
+    Measured RMS: room noise ~35, quiet speech ~150, normal speech ~2,000+."""
+    import io
+    import wave
+    from array import array
+
+    try:
+        with wave.open(io.BytesIO(audio)) as w:
+            if w.getsampwidth() != 2:
+                return False
+            samples = array("h", w.readframes(w.getnframes()))
+    except (wave.Error, EOFError):
+        return False  # not a WAV we can inspect; let Whisper decide
+    if not samples:
+        return True
+    rms = (sum(x * x for x in samples[::4]) / len(samples[::4])) ** 0.5
+    return rms < threshold
+
+
+def transcribe(audio: bytes, filename: str = "question.wav") -> str:
+    """Speech-to-text for voice questions (Groq Whisper); "" when nothing was said."""
+    from groq import Groq
+
+    if is_silent(audio):
+        return ""
+
+    result = Groq().audio.transcriptions.create(
+        file=(filename, audio), model=WHISPER_MODEL, language="en", prompt=WHISPER_HINT
+    )
+    text = result.text.strip()
+    # Whisper's stock outputs for noise, not real questions.
+    if text.lower().strip(" .!?") in {"", "thank you", "thanks", "thanks for watching", "you", "bye"}:
+        return ""
+    return text

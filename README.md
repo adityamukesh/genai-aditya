@@ -29,6 +29,7 @@
 | 🔎 **Hybrid retrieval** | Vector search (ChromaDB) + BM25 keywords, then a cross-encoder reranker. |
 | 🔗 **Citations can't be invented** | Page references come from stored chunk metadata, not from the LLM's text. |
 | 💬 **Two interfaces** | A terminal CLI and a Streamlit web UI on `localhost:8501`. |
+| 🎙️ **Voice questions** | Click the mic in the web UI and ask out loud (Groq Whisper); 🔊 **Listen** reads any answer aloud. |
 | ✅ **Tested** | `eval.py` checks 11 questions, answerable and not, for correct facts and pages: **11/11 pass**. |
 
 **Stack:** Python 3.12 · LangChain · ChromaDB · FastEmbed (local ONNX embeddings + cross-encoder reranker) · BM25 · PyMuPDF · Groq (`openai/gpt-oss-120b`) · Streamlit
@@ -130,6 +131,10 @@ streamlit run app.py        # opens http://localhost:8501
 - Answers have numbered citations and a **Sources** list with section, figure and page.
 - Questions the PDF doesn't answer get a red **Not found** card instead of a guess.
 - **How this answer was found** shows the relevance-gate decision and every retrieved excerpt with its rerank score.
+- 🎙️ **Ask by voice:** click the mic in the chat box, speak, and click ✓. Groq `whisper-large-v3-turbo` transcribes
+  the question, with domain hints so model numbers like "7F.03" come out right. Silent recordings are rejected,
+  so Whisper can't invent a question.
+- 🔊 **Listen:** every answer has a button that reads it aloud, including its source, using the browser's speech engine.
 
 **Home screen**
 
@@ -319,6 +324,8 @@ best-matching sentences of the top excerpt, with the same references and the sam
 - **Models:** the embeddings (`BAAI/bge-small-en-v1.5`) and the reranker (`Xenova/ms-marco-MiniLM-L-6-v2`) run
   locally through FastEmbed/ONNX, so no GPU or PyTorch is needed. Only answer generation calls Groq.
   `GROQ_MODEL` in `.env` switches the model.
+- **Voice:** the first time you click the mic, Chrome asks for microphone permission; choose *Allow*. Speech-to-text
+  uses your Groq key. Read-aloud uses the browser's built-in voices, so it needs no key and no extra install.
 - **Rate limits:** the Groq free tier allows 8,000 tokens per minute. The client retries automatically when that
   limit is hit.
 - **The PDF is not committed:** the GE document is marked *Non-Public* in its footer, so the repository links to the

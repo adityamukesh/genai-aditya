@@ -2,15 +2,18 @@
 
     streamlit run app.py        ->  http://localhost:8501
 """
+import base64
 import html
 import math
 import re
 import time
 
+import json
+
 import streamlit as st
 
-from config import EMBED_MODEL, GROQ_MODEL, MIN_RERANK_SCORE, ROOT, TOP_K
-from rag import Answer, answer, cite, excerpt_text, get_bm25, get_llm, get_reranker, get_vectorstore
+from config import EMBED_MODEL, GROQ_MODEL, MIN_RERANK_SCORE, ROOT, TOP_K, WHISPER_MODEL
+from rag import Answer, answer, cite, excerpt_text, get_bm25, get_llm, get_reranker, get_vectorstore, transcribe
 
 REPO_URL = "https://github.com/adityamukesh/genai-aditya"
 PDF_URL = (
@@ -66,6 +69,8 @@ sup.cite { background: rgba(11,122,117,.14); color: #0b7a75; border-radius: 6px;
 .notfound .d { opacity: .8; font-size: .92rem; }
 
 .meta { display: flex; flex-wrap: wrap; gap: 14px; font-size: .78rem; opacity: .6; margin-top: 10px; }
+.voice-tag { display: inline-flex; align-items: center; gap: 6px; font-size: .74rem; font-weight: 600; color: #0b7a75;
+  background: rgba(11,122,117,.10); border-radius: 999px; padding: 2px 10px; margin-bottom: 4px; }
 
 .gate { font-size: .85rem; padding: 8px 12px; border-radius: 10px; background: rgba(128,128,128,.08); margin-bottom: 10px; }
 .ex { border: 1px solid rgba(128,128,128,.2); border-radius: 12px; padding: 10px 12px; margin-bottom: 10px; }
@@ -113,6 +118,51 @@ def answer_html(text: str) -> str:
     return re.sub(r"\[(\d+)\]", r'<sup class="cite">\1</sup>', text)
 
 
+LISTEN_BUTTON = """<!doctype html>
+<meta charset="utf-8">
+<style>
+  body { margin: 0; background: transparent; font-family: -apple-system, "Source Sans Pro", sans-serif; }
+  button { font-weight: 600; font-size: 13px; color: #0b7a75; background: rgba(11,122,117,.08);
+    border: 1px solid rgba(11,122,117,.35); border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+  button:hover { background: rgba(11,122,117,.16); }
+</style>
+<button id="b">🔊 Listen</button>
+<script>
+  const text = __TEXT__;
+  const b = document.getElementById("b");
+  const synth = window.speechSynthesis;
+  b.onclick = () => {
+    if (synth.speaking) { synth.cancel(); b.textContent = "🔊 Listen"; return; }
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "en-US";
+    const voice = synth.getVoices().find(v => /en-US/.test(v.lang) && /Samantha|Google US English|Natural/.test(v.name));
+    if (voice) u.voice = voice;
+    u.onend = () => { b.textContent = "🔊 Listen"; };
+    b.textContent = "⏹ Stop";
+    synth.speak(u);
+  };
+</script>
+"""
+
+
+def spoken(ans: Answer) -> str:
+    """Answer text tidied for text-to-speech: no [n] tags, units spelled out."""
+    if not ans.found:
+        return "Not found. The document does not contain the answer to this question."
+    text = re.sub(r"\s*\[\d+\]", "", ans.text)
+    text = re.sub(r"(\d) h\b", r"\1 hours", text)
+    where = "; ".join(cite(d).replace(" > ", ", ") for d in ans.references)
+    return f"{text} Source: {where}."
+
+
+def listen_button(ans: Answer) -> None:
+    # The text is model output, so it is JSON-encoded with <, > and & escaped (no way to close the
+    # <script>), and the button is served as a data: URL, an opaque origin with no access to the app.
+    text = json.dumps(spoken(ans)).replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
+    page = LISTEN_BUTTON.replace("__TEXT__", text)
+    st.iframe("data:text/html;base64," + base64.b64encode(page.encode()).decode(), height=40)
+
+
 def relevance(score: float) -> float:
     return 1 / (1 + math.exp(-score / 2))  # cross-encoder logit -> 0..1 for the bar
 
@@ -140,6 +190,7 @@ def render_answer(ans: Answer, seconds: float) -> None:
         f"<span>▤ {len(ans.candidates)} excerpts ranked</span></div>",
         unsafe_allow_html=True,
     )
+    listen_button(ans)
 
     with st.expander("How this answer was found", icon=":material/manage_search:"):
         best = ans.candidates[0][1] if ans.candidates else float("-inf")
@@ -174,6 +225,14 @@ def sidebar(chunks: int) -> None:
         if st.button("New chat", icon=":material/add_comment:", width="stretch", type="primary"):
             st.session_state.history = []
             st.rerun()
+
+        st.markdown('<div class="section-label">Voice</div>', unsafe_allow_html=True)
+        st.markdown(
+            f"🎙️ Click the **mic** in the chat box and ask out loud (Groq `{WHISPER_MODEL}`).<br>"
+            "🔊 Click **Listen** under an answer to hear it read aloud.",
+            unsafe_allow_html=True,
+        )
+        st.write("")
 
         st.markdown('<div class="section-label">Assignment questions</div>', unsafe_allow_html=True)
         for i, q in enumerate(EXAMPLES):
@@ -211,12 +270,23 @@ def main() -> None:
           <div class="chips">
             <span class="chip">📄 60-page GE manual</span><span class="chip">🧩 {chunks} indexed chunks</span>
             <span class="chip">🔎 Hybrid search + rerank</span><span class="chip">⚡ Groq LLM</span>
+            <span class="chip">🎙️ Voice questions</span>
           </div></div>""",
         unsafe_allow_html=True,
     )
 
-    question = st.chat_input("Ask about inspections, intervals, maintenance factors...")
-    question = st.session_state.pop("pending", None) or question
+    submitted = st.chat_input(
+        "Ask about inspections, intervals, maintenance factors... or tap the mic", accept_audio=True
+    )
+    question, by_voice = st.session_state.pop("pending", None), False
+    if not question and submitted:
+        question = (submitted.text or "").strip()
+        if submitted.audio is not None:
+            with st.spinner("Transcribing your question..."):
+                question = transcribe(submitted.audio.getvalue(), submitted.audio.name or "question.wav")
+            by_voice = True
+            if not question:
+                st.toast("Couldn't hear a question, please try again.", icon=":material/mic_off:")
 
     if not st.session_state.history and not question:
         st.markdown('<div class="section-label">Try a question</div>', unsafe_allow_html=True)
@@ -226,12 +296,16 @@ def main() -> None:
 
     for turn in st.session_state.history:
         with st.chat_message("user", avatar=":material/person:"):
+            if turn.get("voice"):
+                st.markdown('<span class="voice-tag">🎙️ Asked by voice</span>', unsafe_allow_html=True)
             st.markdown(html.escape(turn["question"]))
         with st.chat_message("assistant", avatar=":material/precision_manufacturing:"):
             render_answer(turn["answer"], turn["seconds"])
 
     if question:
         with st.chat_message("user", avatar=":material/person:"):
+            if by_voice:
+                st.markdown('<span class="voice-tag">🎙️ Asked by voice</span>', unsafe_allow_html=True)
             st.markdown(html.escape(question))
         with st.chat_message("assistant", avatar=":material/precision_manufacturing:"):
             with st.spinner("Searching GER-3620P..."):
@@ -239,7 +313,7 @@ def main() -> None:
                 result = answer(question)
                 seconds = time.perf_counter() - start
             render_answer(result, seconds)
-        st.session_state.history.append({"question": question, "answer": result, "seconds": seconds})
+        st.session_state.history.append({"question": question, "answer": result, "seconds": seconds, "voice": by_voice})
 
 
 main()

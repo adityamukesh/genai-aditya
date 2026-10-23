@@ -17,6 +17,7 @@ RERANK_MODEL = "Xenova/ms-marco-MiniLM-L-6-v2"
 
 # LLM served by Groq (free tier). Override with GROQ_MODEL in .env.
 GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
+WHISPER_MODEL = os.getenv("WHISPER_MODEL", "whisper-large-v3-turbo")  # speech-to-text for voice questions
 
 # Chunking
 CHUNK_SIZE = 1000
