@@ -8,6 +8,8 @@ assistant replies **`Not found`**.
 
 **Stack:** Python 3.12 · LangChain · ChromaDB · FastEmbed (local ONNX embeddings + cross-encoder reranker) · BM25 · PyMuPDF · Groq (`openai/gpt-oss-120b`) · Streamlit web UI
 
+**Contents:** [Answers](#answers-to-the-5-questions) · [Screenshots](#screenshots-question-asked-and-answer) · [Terminal demo](#live-demo-in-the-terminal) · [Web UI](#web-ui-runs-on-localhost) · [Flow](#flow) · [Evaluation](#evaluation) · [Setup](#setup-and-run)
+
 ---
 
 ## Answers to the 5 questions
@@ -99,7 +101,6 @@ A chat-style web app built with **Streamlit** on top of the same RAG pipeline.
 streamlit run app.py        # opens http://localhost:8501
 ```
 
-Features:
 - Ask any question, or click one of the 5 assignment questions.
 - Answers have numbered citations and a **Sources** list with section, figure and page.
 - Questions the PDF doesn't answer get a red **Not found** card instead of a guess.
@@ -109,13 +110,27 @@ Features:
 
 ![Web UI: home](screenshots/webui-home.png)
 
-**Answer with source (Q5, from Figure 36)**
+**The 5 assignment questions in the web UI** (click an image to see it full size)
 
-![Web UI: answer with source](screenshots/webui-answer.png)
+<table>
+  <tr>
+    <td width="50%" valign="top"><b>Q1</b> · Three main types of inspection<br><br><img src="screenshots/webui-q1.png" alt="Web UI: Q1 answer"></td>
+    <td width="50%" valign="top"><b>Q2</b> · Maintenance factor of two<br><br><img src="screenshots/webui-q2.png" alt="Web UI: Q2 answer"></td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top"><b>Q3</b> · Purchase price → <b>Not found</b><br><br><img src="screenshots/webui-q3.png" alt="Web UI: Q3 Not found"></td>
+    <td width="50%" valign="top"><b>Q4</b> · Melting point of titanium → <b>Not found</b><br><br><img src="screenshots/webui-q4.png" alt="Web UI: Q4 Not found"></td>
+  </tr>
+  <tr>
+    <td colspan="2" valign="top"><b>Q5</b> · Recommended combustion-inspection interval, answered from the Figure 36 table<br><br><img src="screenshots/webui-q5.png" alt="Web UI: Q5 answer"></td>
+  </tr>
+</table>
 
-**Not found, with the retrieval details expanded (Q4)**
-
-![Web UI: Not found](screenshots/webui-not-found.png)
+<details>
+<summary><b>Under the hood:</b> "How this answer was found", expanded for Q1</summary>
+<br>
+<img src="screenshots/webui-how-it-was-found.png" alt="Web UI: retrieval details">
+</details>
 
 ---
 
